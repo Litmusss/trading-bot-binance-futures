@@ -4,18 +4,20 @@ A small, structured Python CLI app that places MARKET, LIMIT, and STOP_MARKET or
 
 ## Project Structure
 
+```text
 trading_bot/
   bot/
     __init__.py
-    client.py          # Binance API wrapper (only file that talks to Binance directly)
-    orders.py           # Order validation + request/response handling
-    validators.py        # Input validation rules
-    logging_config.py    # Logging setup
-  cli.py                 # CLI entry point
-  check_status.py        # Standalone script to verify orders/positions directly via API
+    client.py            # Binance API wrapper (only file that talks to Binance directly)
+    orders.py             # Order validation + request/response handling
+    validators.py          # Input validation rules
+    logging_config.py      # Logging setup
+  cli.py                   # CLI entry point
+  check_status.py          # Standalone script to verify orders/positions directly via API
   requirements.txt
-  .env.example           # Template for required environment variables
+  .env.example             # Template for required environment variables
   README.md
+```
 
 ## Setup
 
@@ -31,34 +33,43 @@ trading_bot/
 
 ### 3. Install dependencies
 
-git clone <your-repo-url>
-cd trading_bot
+```bash
+git clone https://github.com/Litmusss/trading-bot-binance-futures.git
+cd trading-bot-binance-futures
 python3 -m venv venv
 source venv/bin/activate       # Windows: venv\Scripts\activate
 pip install -r requirements.txt
+```
 
 ### 4. Set your API credentials
-Never hardcode API keys in source code. This project loads them from a .env file.
+Never hardcode API keys in source code. This project loads them from a `.env` file.
 
+```bash
 cp .env.example .env
+```
 
-Then open .env and fill in your real key and secret:
-
+Then open `.env` and fill in your real key and secret:
 BINANCE_TESTNET_API_KEY=your_api_key_here
 BINANCE_TESTNET_API_SECRET=your_api_secret_here
 
-.env is listed in .gitignore, so it's never pushed to GitHub. cli.py loads it automatically via python-dotenv.
+`.env` is listed in `.gitignore`, so it's never pushed to GitHub. `cli.py` loads it automatically via `python-dotenv`.
 
 ## How to Run
 
 ### Market order
+```bash
 python cli.py --symbol BTCUSDT --side BUY --type MARKET --quantity 0.01
+```
 
 ### Limit order
+```bash
 python cli.py --symbol BTCUSDT --side SELL --type LIMIT --quantity 0.01 --price 60000
+```
 
 ### Stop-Market order (bonus feature — 3rd order type)
+```bash
 python cli.py --symbol BTCUSDT --side SELL --type STOP_MARKET --quantity 0.01 --stop-price 58000
+```
 
 Each run prints:
 - the order request summary (symbol, side, type, quantity, price/stop price)
@@ -66,32 +77,48 @@ Each run prints:
 - a success or failure message
 
 ### Verifying orders directly (optional but recommended)
-check_status.py queries Binance directly for open orders, recent order history, current positions, and account balance — useful for confirming an order actually filled, independent of what the CLI printed or what the testnet website shows.
+`check_status.py` queries Binance directly for open orders, recent order history, current positions, and account balance — useful for confirming an order actually filled, independent of what the CLI printed or what the testnet website shows.
 
+```bash
 python check_status.py
+```
 
 ## Logging
 
-Every request, response, and error is logged to logs/trading_bot_YYYYMMDD.log.
+Every request, response, and error is logged to `logs/trading_bot_YYYYMMDD.log`.
 The console only shows warnings/errors so normal usage stays readable; the full
 detail lives in the log file. This satisfies the requirement to submit log files
 for at least one MARKET and one LIMIT order — after running each command above,
-copy the relevant lines (or the whole file) from logs/ into your submission.
+copy the relevant lines (or the whole file) from `logs/` into your submission.
 
 ## Error Handling
 
 The app handles three categories of failure distinctly:
-- Invalid input — caught by bot/validators.py before any API call is made (e.g. missing price on a LIMIT order, negative quantity, unsupported side).
-- Binance API errors — caught via BinanceAPIException / BinanceOrderException / BinanceRequestException (e.g. insufficient testnet balance, invalid symbol, rejected order).
-- Network failures — caught via requests' ConnectionError / Timeout.
+- **Invalid input** — caught by `bot/validators.py` before any API call is made (e.g. missing price on a LIMIT order, negative quantity, unsupported side).
+- **Binance API errors** — caught via `BinanceAPIException` / `BinanceOrderException` / `BinanceRequestException` (e.g. insufficient testnet balance, invalid symbol, rejected order).
+- **Network failures** — caught via `requests`' `ConnectionError` / `Timeout`.
 
 In all three cases, the error is logged with full detail and a short, readable
 message is printed to the console.
 
 ## Assumptions
 
-- This targets USDT-M Futures only (not Coin-M or Spot).
-- LIMIT orders use GTC (Good-Til-Cancelled) as the time-in-force, since the task didn't specify one.
+- This targets **USDT-M Futures** only (not Coin-M or Spot).
+- LIMIT orders use `GTC` (Good-Til-Cancelled) as the time-in-force, since the task didn't specify one.
 - STOP_MARKET was chosen as the bonus third order type since it's a natural extension of the existing order flow and commonly used for stop-loss placement.
-- Quantities and prices are passed as-is to Binance; the app does not attempt to auto-round to each symbol's exchange-defined precision (stepSize/tickSize). If a MARKET/LIMIT order fails with a precision error, adjust the quantity/price to match the symbol's rules (visible via GET /fapi/v1/exchangeInfo).
-- API credentials are read from a .env file rather than a config file or shell exports, to avoid any risk of committing secrets to the repo and to keep setup reproducible across machines.
+- Quantities and prices are passed as-is to Binance; the app does not attempt to auto-round to each symbol's exchange-defined precision (`stepSize`/`tickSize`). If a MARKET/LIMIT order fails with a precision error, adjust the quantity/price to match the symbol's rules (visible via `GET /fapi/v1/exchangeInfo`).
+- API credentials are read from a `.env` file rather than a config file or shell exports, to avoid any risk of committing secrets to the repo and to keep setup reproducible across machines.
+
+## AI Usage
+
+I used Claude (Anthropic) as a coding assistant to help scaffold the initial
+project structure (separating client/orders/validators/logging into modules)
+and to speed up writing the argparse CLI and exception-handling boilerplate.
+
+All code was reviewed, tested, and debugged by me — including diagnosing a
+real environment/interpreter issue during setup, verifying order fills
+directly against the Futures Testnet API (not just trusting the CLI output),
+and confirming positions/balances updated correctly after each order. I chose
+STOP_MARKET as the bonus order type and made the design call to load
+credentials via `.env`/`python-dotenv` rather than hardcoding or using shell
+exports, to keep secrets out of the repo.
