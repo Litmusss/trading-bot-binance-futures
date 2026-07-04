@@ -109,16 +109,3 @@ message is printed to the console.
 - Quantities and prices are passed as-is to Binance; the app does not attempt to auto-round to each symbol's exchange-defined precision (`stepSize`/`tickSize`). If a MARKET/LIMIT order fails with a precision error, adjust the quantity/price to match the symbol's rules (visible via `GET /fapi/v1/exchangeInfo`).
 - API credentials are read from a `.env` file rather than a config file or shell exports, to avoid any risk of committing secrets to the repo and to keep setup reproducible across machines.
 
-## AI Usage
-
-I used Claude (Anthropic) as a coding assistant to help scaffold the initial
-project structure (separating client/orders/validators/logging into modules)
-and to speed up writing the argparse CLI and exception-handling boilerplate.
-
-All code was reviewed, tested, and debugged by me — including diagnosing a
-real environment/interpreter issue during setup, verifying order fills
-directly against the Futures Testnet API (not just trusting the CLI output),
-and confirming positions/balances updated correctly after each order. I chose
-STOP_MARKET as the bonus order type and made the design call to load
-credentials via `.env`/`python-dotenv` rather than hardcoding or using shell
-exports, to keep secrets out of the repo.
