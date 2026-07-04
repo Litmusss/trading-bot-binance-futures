@@ -1,10 +1,8 @@
-"""
-Order-level logic that sits between the CLI and the Binance client.
+# Validates and formats orders before they go to the client
+# Also formats the response for CLI output
 
-OrderRequest validates and holds a ready-to-submit order.
-execute_order() sends it and returns a clean result dict.
-format_result() turns that dict into readable CLI output.
-"""
+
+
 
 import logging
 

@@ -1,3 +1,7 @@
+#proof of the orders that you made on binance testnet
+
+
+
 # check_status.py
 import os
 from dotenv import load_dotenv

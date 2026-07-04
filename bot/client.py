@@ -1,10 +1,5 @@
-"""
-Thin wrapper around python-binance's Client, scoped to Binance Futures
-Testnet (USDT-M). This is the ONLY file that talks to the Binance API
-directly — every other module goes through this class. That makes it
-easy to swap the underlying implementation later (e.g. to raw REST calls)
-without touching the CLI or order logic.
-"""
+# Wrapper around python-binance for Futures Testnet
+# Keeps all direct Binance API calls in one place
 
 import logging
 

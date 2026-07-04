@@ -15,7 +15,9 @@ trading_bot/
     logging_config.py    # Logging setup
   cli.py                 # CLI entry point
   requirements.txt
-  check_status.py        #check order status
+
+  check_status.py      #check order status
+
   README.md
 ```
 
