@@ -12,6 +12,7 @@ trading_bot/
     orders.py             # Order validation + request/response handling
     validators.py          # Input validation rules
     logging_config.py      # Logging setup
+    interactive.py         # Guided interactive CLI mode (bonus)
   cli.py                   # CLI entry point
   check_status.py          # Standalone script to verify orders/positions directly via API
   requirements.txt
@@ -56,19 +57,28 @@ BINANCE_TESTNET_API_SECRET=your_api_secret_here
 
 ## How to Run
 
-### Market order
+### Flag-driven mode
+
+Market order:
 ```bash
 python cli.py --symbol BTCUSDT --side BUY --type MARKET --quantity 0.01
 ```
 
-### Limit order
+Limit order:
 ```bash
 python cli.py --symbol BTCUSDT --side SELL --type LIMIT --quantity 0.01 --price 60000
 ```
 
-### Stop-Market order (bonus feature — 3rd order type)
+Stop-Market order (bonus feature — 3rd order type):
 ```bash
 python cli.py --symbol BTCUSDT --side SELL --type STOP_MARKET --quantity 0.01 --stop-price 58000
+```
+
+### Interactive mode (bonus — enhanced CLI UX)
+
+Run with no arguments for a guided, menu-driven flow with input validation and a confirmation step before any order is sent:
+```bash
+python cli.py
 ```
 
 Each run prints:
@@ -95,7 +105,7 @@ copy the relevant lines (or the whole file) from `logs/` into your submission.
 
 The app handles three categories of failure distinctly:
 - **Invalid input** — caught by `bot/validators.py` before any API call is made (e.g. missing price on a LIMIT order, negative quantity, unsupported side).
-- **Binance API errors** — caught via `BinanceAPIException` / `BinanceOrderException` / `BinanceRequestException` (e.g. insufficient testnet balance, invalid symbol, rejected order).
+- **Binance API errors** — caught via `BinanceAPIException` / `BinanceOrderException` / `BinanceRequestException` (e.g. insufficient testnet balance, invalid symbol, rejected order, server timeouts).
 - **Network failures** — caught via `requests`' `ConnectionError` / `Timeout`.
 
 In all three cases, the error is logged with full detail and a short, readable
@@ -106,6 +116,7 @@ message is printed to the console.
 - This targets **USDT-M Futures** only (not Coin-M or Spot).
 - LIMIT orders use `GTC` (Good-Til-Cancelled) as the time-in-force, since the task didn't specify one.
 - STOP_MARKET was chosen as the bonus third order type since it's a natural extension of the existing order flow and commonly used for stop-loss placement.
+- An interactive, menu-driven CLI mode was added as a second bonus feature, triggered by running `cli.py` with no arguments.
 - Quantities and prices are passed as-is to Binance; the app does not attempt to auto-round to each symbol's exchange-defined precision (`stepSize`/`tickSize`). If a MARKET/LIMIT order fails with a precision error, adjust the quantity/price to match the symbol's rules (visible via `GET /fapi/v1/exchangeInfo`).
 - API credentials are read from a `.env` file rather than a config file or shell exports, to avoid any risk of committing secrets to the repo and to keep setup reproducible across machines.
-
+- Binance Futures Testnet occasionally returns timeouts or 502 errors under load; these are handled and logged rather than crashing the app, and a retry typically succeeds.
